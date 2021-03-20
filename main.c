@@ -82,9 +82,7 @@ int main (void){
   DDRD &= 0xFB;
   // INT1 = PD3 =. &11110111
   DDRD &= 0xF7;
-  DDRD |= 0x40;
-  DDRD &= 0xEF;
-  //PORTD |= 0x80;
+  DDRD |= 0x40;// 0100 0000 PF6
   OCR0A = 0xFF; //250
   TCCR0A &= 0x00;
   // PWM Update of OCRx at bottom isTCCR0A |= 0xF3; update top is 1
