@@ -70,19 +70,28 @@ int main (void){
   //PORTD |= 0x04;
   //ISC01 und ISC00 loeschen und setzen fuer any edge (1) oder rising (11)
   EICRA &= 0xFC;
+  // Rising Edge INT0 is 11 for ISC01 and ISC00 which is bit 0 and 1 > 0011
   EICRA |= 0x03,
-  EIMSK |= 0x01;
+  // Rising Edge INT1 is 11 for ISC11 and ISC10 which is bit 2 and 3 > 1100
+  EICRA |= 0x0C;
+  // enable INT0 and INT1
+  EIMSK |= 0x03;
   
   //DDRD |= 0x04;
   // INT0 = PD2
   DDRD &= 0xFB;
+  // INT1 = PD3 =. &11110111
+  DDRD &= 0xF7;
   DDRD |= 0x40;
   DDRD &= 0xEF;
   //PORTD |= 0x80;
-  OCR0A = 250; //250
+  OCR0A = 0xFF; //250
   TCCR0A &= 0x00;
+  // PWM Update of OCRx at bottom isTCCR0A |= 0xF3; update top is 1
   TCCR0A |= 0xF3;
   TCCR0B &= 0xF0;
+  // Prescale 5 is 1024, 1 is no prescaling
+  // 328p has  20Mhz (5*10^-8 s per cycle)
   TCCR0B |= 0x05;
 
   sei();
@@ -104,12 +113,27 @@ int main (void){
 }
 
 ISR(INT0_vect){
-  if(globalchange == 0){
+  if(OCR0A > 0){
+    OCR0A--;
+  }
+  /*if(globalchange == 0){
     OCR0A = 128;
     globalchange = 1;
   }else{
     OCR0A = 200;
     globalchange = 0;
+  }*/
+}
+ISR(INT1_vect){
+  if(OCR0A < 0xFF){
+    OCR0A++;
   }
+  /*if(globalchange == 0){
+    OCR0A = 128;
+    globalchange = 1;
+  }else{
+    OCR0A = 200;
+    globalchange = 0;
+  }*/
 }
   
