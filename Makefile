@@ -6,8 +6,10 @@ compile: main.c
 hexhex: compile
 	avr-objcopy -j .text -j .data -O ihex main.bin main.hex
 
-upload: hexhex
+upload: main.hex
 	avrdude -p m328p -P /dev/ttyACM0 -c arduino -U flash:w:main.hex:i -F =P usb
+
+all: hexhex upload
 
 clean:
 	rm -f main.bin main.hex
