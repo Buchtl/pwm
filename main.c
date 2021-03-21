@@ -41,7 +41,10 @@ int main (void){
   lastInterrupt = 0;
 
   while(TRUE){
-    PORTD &= 0xFF;
+    // Sleep Mode Control Register
+    // in SCMR SM2..0 written 0 -> idle
+    //sleep instead
+    SMCR &= ~((SM2 << 1) | (SM1 << 1) | (SM0 << 1));
  }
 }
 
