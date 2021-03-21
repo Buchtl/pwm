@@ -5,7 +5,7 @@
 #define TRUE 1
 #define FALSE 0
 
-volatile unsigned long currentMillis = 0;
+volatile unsigned long currentTime = 0;
 volatile unsigned long lastInterrupt = 0;
 volatile unsigned long ledTime = 0;
 
@@ -59,14 +59,14 @@ void configInterrupt(){
 
 void timer0(){
   //OCR0B = 128;
-  OCR0A = 128;//243; //250
+  OCR0A = 245;//243; //250
   TCCR0A &= 0x00;
   // PWM Update of OCRx at bottom isTCCR0A |= 0xF3; update top is 1
   TCCR0A |= 0xF3;
   TCCR0B &= 0xF0;
   // Prescale 5 is 1024, 1 is no prescaling
   // 328p has  20Mhz (5*10^-8 s per cycle)
-  TCCR0B |= 0x04;
+  TCCR0B |= 0x01;
 }
 
 void timer2(){
@@ -75,16 +75,12 @@ void timer2(){
   // Prescale 1024 -> 20Mhz / 1024 = 42.2 us * 24 = 1012,8
   TCCR2B |= 0x07;
   OCR2A = 24;
-  // Interrupt when match on A
-  //TIMSK2 |= (1 << 1) OCIE2A; 
-  // Enable interrupt
-  //TIMSK2 |= (1 << TOIE2);
   TIMSK2 |= (1 << OCIE2A);
 
 }
 
 ISR(TIMER2_COMPA_vect){
-  currentMillis++;
+  currentTime++;
   ledTime++;
   if(ledTime > 38){
     //togglePd4();
@@ -110,29 +106,29 @@ void pd4(int value){
 
 
 ISR(INT0_vect){
-  //turnOffSwitches();
-  togglePd4();
-  unsigned long diffTime = currentMillis - lastInterrupt;
-  if (lastInterrupt == 0 || diffTime > 30){
-    //togglePd4();
-    if(OCR0A > 0){
-      OCR0A--;
+  turnOffSwitches();
+  unsigned long diffTime = currentTime - lastInterrupt;
+  if (lastInterrupt == 0 || diffTime > 5){
+    togglePd4();
+    if(OCR0A > 0x00){
+      OCR0A  -= 1;
     }
-    lastInterrupt = currentMillis;
+    lastInterrupt = currentTime;
   }
-  //turnOnSwitches();
+  turnOnSwitches();
 }
 
 ISR(INT1_vect){
-  //turnOffSwitches();
-  unsigned long diffTime = currentMillis - lastInterrupt;
-  if (lastInterrupt == 0 || diffTime > 30){
+  turnOffSwitches();
+  unsigned long diffTime = currentTime - lastInterrupt;
+  if (lastInterrupt == 0 || diffTime > 5){
+    togglePd4();
     if(OCR0A < 0xFF){
-      //OCR0A++;
+      OCR0A += 1;
     }
-    lastInterrupt = currentMillis;
+    lastInterrupt = currentTime;
   }
-  //turnOnSwitches();
+  turnOnSwitches();
 }
 
 void turnOnSwitches(){
