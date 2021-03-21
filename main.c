@@ -36,7 +36,6 @@ int main (void){
   timer2();
 
   sei();
-  lastInterrupt = 0;
 
   while(TRUE){
     // Sleep Mode Control Register
@@ -73,17 +72,18 @@ void timer0(){
 void timer2(){
   TCCR2A &= 0x00;
   TCCR2B &= 0x00;
-  // Prescale 1024 -> 20Mhz / 1024 = 42.2 us * 24 = 1012,8
+  // Prescale 1024 -> 20Mhz -> 50ns cycle -> prescale 1024 = 51,2 us * 19 = 972,8us
   TCCR2B |= 0x07;
-  OCR2A = 24;
+  OCR2A = 19;
   TIMSK2 |= (1 << OCIE2A);
 
 }
 
 ISR(TIMER2_COMPA_vect){
+  OCR2A = 0;
   currentTime++;
   ledTime++;
-  if(ledTime > 38){
+  if(ledTime > 999){
     //togglePd4();
     ledTime = 0;
   }
