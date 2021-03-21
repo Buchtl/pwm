@@ -20,19 +20,17 @@ void configInterrupt();
 
 int main (void){
   
-  DDRD |= 0x04;
-  //PORTD |= 0x04;
   configInterrupt();
-  //DDRD |= 0x04;
   // INT0 = PD2
-  DDRD &= 0xFB;
+  //DDRD |= 0x04;
+  DDRD &= ~(PIND2 << 1);//0xFB;
   // INT1 = PD3 =. &11110111
-  DDRD &= 0xF7;
+  DDRD &= ~(PIND3 << 1);//0xF7;
   //PD6 output
   //DDRD |= 0x40;// 0100 0000 PF6
-  DDRD |= (1 << 6);
+  DDRD |= (PIND6 << 1);//(1 << 6);
   // PD4 output
-  DDRD |= (1 << 4);
+  DDRD |= (PIND4 << 1);//(1 << 4);
 
   timer0();
   timer2();
