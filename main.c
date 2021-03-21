@@ -71,6 +71,8 @@ void timer0(){
 
 void timer2(){
   TCCR2A &= 0x00;
+  // Clear Timer on Compare match (CTC)
+  TCCR2A |= (1 << WGM01);
   TCCR2B &= 0x00;
   // Prescale 1024 -> 20Mhz -> 50ns cycle -> prescale 1024 = 51,2 us * 19 = 972,8us
   TCCR2B |= 0x07;
@@ -80,7 +82,6 @@ void timer2(){
 }
 
 ISR(TIMER2_COMPA_vect){
-  TCNT2 = 0;
   currentTime++;
   ledTime++;
   if(ledTime > 999){
