@@ -80,7 +80,7 @@ void timer2(){
 }
 
 ISR(TIMER2_COMPA_vect){
-  OCR2A = 0;
+  TCNT2 = 0;
   currentTime++;
   ledTime++;
   if(ledTime > 999){
