@@ -23,14 +23,14 @@ int main (void){
   configInterrupt();
   // INT0 = PD2
   //DDRD |= 0x04;
-  DDRD &= ~(PIND2 << 1);//0xFB;
+  DDRD &= ~(1 << PIND2);//0xFB;
   // INT1 = PD3 =. &11110111
-  DDRD &= ~(PIND3 << 1);//0xF7;
+  DDRD &= ~(1 << PIND3);//0xF7;
   //PD6 output
   //DDRD |= 0x40;// 0100 0000 PF6
-  DDRD |= (PIND6 << 1);//(1 << 6);
+  DDRD |= (1 << PIND6);//(1 << 6);
   // PD4 output
-  DDRD |= (PIND4 << 1);//(1 << 4);
+  DDRD |= (1 << PIND4);//(1 << 4);
 
   timer0();
   timer2();
