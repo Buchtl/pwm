@@ -55,7 +55,7 @@ void configInterrupt(){
 
 void timer0(){
   //OCR0B = 128;
-  OCR0A = 0xFF;//243; //250
+  OCR0A = 248;//243; //250
   TCCR0A &= 0x00;
   TCCR0A |=  (1 << WGM00) | (1 << WGM02);//(1 << WGM00) | (1 << WGM02);
   //TCCR0A |= (1 << COM0A0) | (1 << COM0A1);
