@@ -4,6 +4,7 @@
 
 #define TRUE 1
 #define FALSE 0
+#define INT_BREAK 10
 
 volatile unsigned long currentTime = 0;
 volatile unsigned long lastInterrupt = 0;
@@ -21,16 +22,11 @@ void configInterrupt();
 int main (void){
   
   configInterrupt();
-  // INT0 = PD2
-  //DDRD |= 0x04;
-  DDRD &= ~(1 << PIND2);//0xFB;
-  // INT1 = PD3 =. &11110111
-  DDRD &= ~(1 << PIND3);//0xF7;
+  // INT0 = PD2 INT1 = PD3
+  DDRD &= ~((1 << PIND2) | (1 << PIND3));
   //PD6 output
-  //DDRD |= 0x40;// 0100 0000 PF6
-  DDRD |= (1 << PIND6);//(1 << 6);
-  // PD4 output
-  DDRD |= (1 << PIND4);//(1 << 4);
+  DDRD |= (1 << PIND6);
+  DDRD |= (1 << PIND4);
 
   timer0();
   timer2();
@@ -41,7 +37,7 @@ int main (void){
     // Sleep Mode Control Register
     // in SCMR SM2..0 written 0 -> idle
     //sleep instead
-    SMCR &= ~((SM2 << 1) | (SM1 << 1) | (SM0 << 1));
+    SMCR &= ~((1 << SM2) | (1 << SM1) | (1 << SM0));
  }
 }
 
@@ -59,14 +55,17 @@ void configInterrupt(){
 
 void timer0(){
   //OCR0B = 128;
-  OCR0A = 245;//243; //250
+  OCR0A = 0xFF;//243; //250
   TCCR0A &= 0x00;
+  TCCR0A |=  (1 << WGM00) | (1 << WGM02);//(1 << WGM00) | (1 << WGM02);
+  //TCCR0A |= (1 << COM0A0) | (1 << COM0A1);
+  TCCR0A |= (1 << COM0A1) | (1 << COM0A0);
+  TCCR0B &= 0x00;
+  //TCCR0B |= (1 << CS02) | (1 << CS00);// | (1 << WGM02);
+  TCCR0B |= (1 << CS00);
   // PWM Update of OCRx at bottom isTCCR0A |= 0xF3; update top is 1
-  TCCR0A |= 0xF3;
-  TCCR0B &= 0xF0;
   // Prescale 5 is 1024, 1 is no prescaling
   // 328p has  20Mhz (5*10^-8 s per cycle)
-  TCCR0B |= 0x01;
 }
 
 void timer2(){
@@ -83,10 +82,9 @@ void timer2(){
 
 ISR(TIMER2_COMPA_vect){
   currentTime++;
-  ledTime++;
-  if(ledTime > 999){
-    //togglePd4();
-    ledTime = 0;
+  if(currentTime - ledTime > 100){
+    togglePd4();
+    ledTime = currentTime;
   }
 }
 
@@ -109,12 +107,9 @@ void pd4(int value){
 
 ISR(INT0_vect){
   turnOffSwitches();
-  unsigned long diffTime = currentTime - lastInterrupt;
-  if (lastInterrupt == 0 || diffTime > 5){
-    togglePd4();
-    if(OCR0A > 0x00){
-      OCR0A  -= 1;
-    }
+  int delayed = currentTime > (lastInterrupt + INT_BREAK) || lastInterrupt == 0;
+  if(delayed == 1 && OCR0A > 0 && OCR0A <= 0xFF){
+    OCR0A--;
     lastInterrupt = currentTime;
   }
   turnOnSwitches();
@@ -122,12 +117,9 @@ ISR(INT0_vect){
 
 ISR(INT1_vect){
   turnOffSwitches();
-  unsigned long diffTime = currentTime - lastInterrupt;
-  if (lastInterrupt == 0 || diffTime > 5){
-    togglePd4();
-    if(OCR0A < 0xFF){
-      OCR0A += 1;
-    }
+  int delayed = currentTime  > (lastInterrupt + INT_BREAK) || lastInterrupt == 0;
+  if(delayed == 1 && OCR0A >= 0 && OCR0A < 0xFF){
+    OCR0A++;
     lastInterrupt = currentTime;
   }
   turnOnSwitches();
