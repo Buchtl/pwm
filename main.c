@@ -6,11 +6,15 @@
 #define FALSE 0
 #define INT_BREAK 10
 
+#define    F_CPU   16000UL
+
 volatile unsigned long currentTime = 0;
 volatile unsigned long lastInterrupt = 0;
 volatile unsigned long ledTime = 0;
 
 
+void adc0();
+void configCpu();
 void timer0();
 void timer2();
 void pd4(int value);
@@ -18,15 +22,18 @@ void togglePd4();
 void turnOnSwitches();
 void turnOffSwitches();
 void configInterrupt();
+void uart();
 
 int main (void){
   
+  //configCpu();
   configInterrupt();
   // INT0 = PD2 INT1 = PD3
   DDRD &= ~((1 << PIND2) | (1 << PIND3));
   //PD6 output
   DDRD |= (1 << PIND6);
   DDRD |= (1 << PIND4);
+  adc0();
 
   timer0();
   timer2();
@@ -37,10 +44,37 @@ int main (void){
     // Sleep Mode Control Register
     // in SCMR SM2..0 written 0 -> idle
     //sleep instead
-    SMCR &= ~((1 << SM2) | (1 << SM1) | (1 << SM0));
+    //SMCR &= ~((1 << SM2) | (1 << SM1) | (1 << SM0));
+    adc0();
  }
 }
 
+void uart(){
+  
+}
+
+void adc0(){
+  //PC0 input
+  DIDR0 |= (1 << ADC0D);
+  DDRC = 0x00;// &= ~(1 << PINC0);
+  ADMUX = 0x00;
+  ADCSRA = 0;
+  // Start ane enable conversion
+  ADCSRA |= (1 << ADEN) | (1 << ADSC);
+  while((ADCSRA & (1 << ADSC)) != 0){
+    // nop
+  }
+  unsigned char adcl = ADCL;
+  unsigned char adch = ADCH;
+  OCR0A = adcl;
+}
+
+void configCpu(){
+  //CLKPR = 0x00;
+  //CLKPR = (1 << CLKPCE);
+  //CLKPR = CLKPR | (1 << CLKPS3) | (1 << CLKPS2)| (1 << CLKPS1) | (1 << CLKPS0);
+  //CLKPR &= ~((1 << CLKPS3) | (1 << CLKPS2)| (1 << CLKPS1) | (1 << CLKPS0));
+}
 void configInterrupt(){
     //ISC01 und ISC00 loeschen und setzen fuer any edge (1) oder rising (11)
   EICRA &= 0xFC;
